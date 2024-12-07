@@ -2,32 +2,31 @@ import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   const { title, description } = await request.json()
-  // Mock more complex generation with modules and lessons
   const course = {
     title: title || "Untitled Course",
     description: description || "No description provided.",
     modules: [
       {
         title: 'Module 1: Fundamentals',
-        description: 'Get introduced to the topic, understand core concepts, and build a foundation.',
+        description: 'An introduction to the topic, fundamental concepts, and a foundation to build upon.',
         lessons: [
           { title: 'Lesson 1.1: Introduction', 
-            content: `Welcome to the fundamentals! In this lesson, we will overview the entire topic, set expectations, and clarify learning objectives.\n\nKey topics:\n- Overview of subject area\n- Fundamental terms and definitions\n- Real-world examples to spark interest.` 
+            content: `Welcome to the fundamentals! This lesson covers the topic overview, main concepts, and why it matters.\n\nYou will understand:\n- Core definitions\n- Practical examples\n- Relevance in real-world scenarios` 
           },
           { title: 'Lesson 1.2: Basic Concepts',
-            content: `This lesson dives deeper into the basic concepts.\n\nYou will learn:\n- Core principles\n- Common methods and approaches\n- Basic exercises to test knowledge.\n\nBy the end, you should have a solid understanding of the essential building blocks.` 
+            content: `Here we delve deeper into the basic building blocks.\n\nTopics:\n- Essential principles\n- Simple exercises\n- Observing results\n\nBy the end, you should have a strong foundation.` 
           }
         ]
       },
       {
         title: 'Module 2: Advanced Topics',
-        description: 'Explore more complex aspects, advanced techniques, and best practices.',
+        description: 'Explore complex aspects, advanced strategies, and best practices.',
         lessons: [
           { title: 'Lesson 2.1: Advanced Techniques',
-            content: `This lesson covers advanced techniques.\n\nYou'll understand:\n- Complex scenarios\n- High-level strategies\n- Integrations with other systems.\n\nPractice these techniques with provided activities and review them in quizzes.` 
+            content: `This lesson deals with advanced strategies.\n\nYou will learn:\n- Complex case handling\n- Integrations with other frameworks\n- Efficient troubleshooting methods.` 
           },
           { title: 'Lesson 2.2: Case Studies',
-            content: `In this final lesson, we explore real-world case studies.\n\nDiscover:\n- Detailed examples of the topic in action\n- Troubleshooting and pitfalls\n- Expert advice and next steps.\n\nBy the end, you’ll be able to apply these insights to your own projects.` 
+            content: `Real-world applications of these concepts.\n\nStudy:\n- Detailed industry examples\n- Common pitfalls\n- Expert tips for mastery.\n\nThis final lesson prepares you for applying knowledge in practice.` 
           }
         ]
       }

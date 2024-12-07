@@ -3,15 +3,22 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
+type ViewState = 'course-home' | 'module' | 'lesson' | 'quiz' | 'activity'
+
 export default function Home() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [generatedCourse, setGeneratedCourse] = useState<any>(null)
   const [loading, setLoading] = useState(false)
-  
+
   const [overlayOpen, setOverlayOpen] = useState(false)
+  const [viewState, setViewState] = useState<ViewState>('course-home')
   const [selectedModule, setSelectedModule] = useState<number|null>(null)
   const [selectedLesson, setSelectedLesson] = useState<{moduleIndex: number, lessonIndex: number}|null>(null)
+
+  // Quiz states
+  const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({})
+  const [quizScore, setQuizScore] = useState<number|null>(null)
 
   const handleGenerate = async () => {
     setLoading(true)
@@ -42,32 +49,103 @@ export default function Home() {
 
   const openOverlay = () => {
     setOverlayOpen(true)
+    setViewState('course-home')
     setSelectedModule(null)
     setSelectedLesson(null)
+    setQuizScore(null)
+    setQuizAnswers({})
   }
 
   const closeOverlay = () => {
     setOverlayOpen(false)
     setSelectedModule(null)
     setSelectedLesson(null)
+    setViewState('course-home')
+    setQuizScore(null)
+    setQuizAnswers({})
   }
 
   const goBack = () => {
-    if (selectedLesson !== null) {
+    if (viewState === 'activity') {
+      setViewState('quiz')
+      setQuizScore(null)
+    } else if (viewState === 'quiz') {
+      setViewState('lesson')
+    } else if (viewState === 'lesson') {
       setSelectedLesson(null)
-    } else if (selectedModule !== null) {
+      setViewState('module')
+    } else if (viewState === 'module') {
       setSelectedModule(null)
+      setViewState('course-home')
     } else {
-      // close overlay
       closeOverlay()
     }
   }
 
-  // Extract the currently viewed lesson content if any
   let currentLesson: any = null
   if (selectedLesson && generatedCourse) {
     const { moduleIndex, lessonIndex } = selectedLesson
     currentLesson = generatedCourse.modules[moduleIndex].lessons[lessonIndex]
+  }
+
+  // Navigate functions
+  const selectModule = (mIdx: number) => {
+    setSelectedModule(mIdx)
+    setViewState('module')
+  }
+
+  const selectLesson = (mIdx: number, lIdx: number) => {
+    setSelectedLesson({moduleIndex: mIdx, lessonIndex: lIdx})
+    setViewState('lesson')
+  }
+
+  const goToQuiz = () => {
+    setViewState('quiz')
+    setQuizScore(null)
+    setQuizAnswers({})
+  }
+
+  const goToActivity = () => {
+    setViewState('activity')
+  }
+
+  const quizQuestions = [
+    {
+      id: 'q1',
+      question: 'Which of the following best describes the main concept covered in this lesson?',
+      options: [
+        'A trivial detail with no real-world use',
+        'A fundamental principle that underpins the entire topic',
+        'An unrelated concept introduced for confusion',
+        'A theoretical idea never applied in practice'
+      ],
+      correct: 1
+    },
+    {
+      id: 'q2',
+      question: 'Identify a scenario where the concept would be most effectively applied.',
+      options: [
+        'In an unrelated and opposite field',
+        'In a scenario that precisely matches the concept’s domain',
+        'In a scenario that completely ignores the concept’s constraints',
+        'In a purely imaginary setting with no real data'
+      ],
+      correct: 1
+    }
+  ]
+
+  const handleQuizAnswer = (qId: string, answerIndex: number) => {
+    setQuizAnswers((prev) => ({...prev, [qId]: answerIndex.toString()}))
+  }
+
+  const submitQuiz = () => {
+    let score = 0
+    quizQuestions.forEach(q => {
+      if (quizAnswers[q.id] === q.correct.toString()) {
+        score++
+      }
+    })
+    setQuizScore(score)
   }
 
   return (
@@ -150,7 +228,7 @@ export default function Home() {
         </motion.div>
       )}
 
-      {/* Overlay for course content */}
+      {/* Overlay for full course navigation */}
       <AnimatePresence>
         {overlayOpen && (
           <motion.div
@@ -169,25 +247,28 @@ export default function Home() {
             >
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold text-gray-900">
-                  {selectedLesson
-                    ? currentLesson?.title
-                    : selectedModule !== null
-                    ? generatedCourse.modules[selectedModule].title
-                    : generatedCourse?.title || 'Course'}
+                  {viewState === 'course-home'
+                    ? generatedCourse?.title 
+                    : viewState === 'module'
+                      ? generatedCourse.modules[selectedModule!].title
+                      : viewState === 'lesson'
+                        ? currentLesson?.title
+                        : viewState === 'quiz'
+                          ? "Quiz"
+                          : "Interactive Activity"}
                 </h2>
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   onClick={goBack}
                   className="text-gray-600 hover:text-gray-900 font-medium"
                 >
-                  {selectedLesson || selectedModule !== null ? 'Back' : 'Close'}
+                  {viewState === 'course-home' ? 'Close' : 'Back'}
                 </motion.button>
               </div>
 
               <div className="relative flex-1 overflow-auto">
                 <AnimatePresence mode="wait">
-                  {/* Course Home View */}
-                  {selectedModule === null && selectedLesson === null && (
+                  {viewState === 'course-home' && (
                     <motion.div
                       key="courseHome"
                       initial={{ x: 50, opacity: 0 }}
@@ -200,7 +281,6 @@ export default function Home() {
                         <h3 className="text-xl font-semibold text-gray-800">Description</h3>
                         <p className="text-gray-700">{generatedCourse.description}</p>
                       </div>
-
                       <div>
                         <h3 className="text-xl font-semibold text-gray-800 mb-2">Modules</h3>
                         <div className="space-y-2">
@@ -209,7 +289,7 @@ export default function Home() {
                               key={mIdx}
                               whileHover={{ scale: 1.02 }}
                               whileTap={{ scale: 0.98 }}
-                              onClick={() => setSelectedModule(mIdx)}
+                              onClick={() => selectModule(mIdx)}
                               className="cursor-pointer p-4 bg-gray-50 rounded-md hover:bg-gray-100 transition"
                               initial={{ opacity:0, y:10 }}
                               animate={{ opacity:1, y:0 }}
@@ -223,8 +303,7 @@ export default function Home() {
                     </motion.div>
                   )}
 
-                  {/* Module View */}
-                  {selectedModule !== null && selectedLesson === null && (
+                  {viewState === 'module' && selectedModule !== null && (
                     <motion.div
                       key="moduleView"
                       initial={{ x: 50, opacity: 0 }}
@@ -244,7 +323,7 @@ export default function Home() {
                               key={lIdx}
                               whileHover={{ scale: 1.02 }}
                               whileTap={{ scale: 0.98 }}
-                              onClick={() => setSelectedLesson({moduleIndex: selectedModule, lessonIndex: lIdx})}
+                              onClick={() => selectLesson(selectedModule, lIdx)}
                               className="cursor-pointer p-4 bg-gray-50 rounded-md hover:bg-gray-100 transition"
                               initial={{ opacity:0, y:10 }}
                               animate={{ opacity:1, y:0 }}
@@ -258,8 +337,7 @@ export default function Home() {
                     </motion.div>
                   )}
 
-                  {/* Lesson View */}
-                  {selectedLesson !== null && (
+                  {viewState === 'lesson' && selectedLesson !== null && (
                     <motion.div
                       key="lessonView"
                       initial={{ x: 50, opacity: 0 }}
@@ -270,24 +348,125 @@ export default function Home() {
                     >
                       <div>
                         <h3 className="text-xl font-semibold text-gray-800">Lesson Content</h3>
-                        <p className="text-gray-700 whitespace-pre-line">
-                          {currentLesson?.content}
-                        </p>
+                        <p className="text-gray-700 whitespace-pre-line">{currentLesson?.content}</p>
                       </div>
-                      <div>
-                        <h3 className="text-xl font-semibold text-gray-800">Quiz</h3>
-                        <p className="text-gray-700">Try answering these questions:</p>
-                        <ul className="list-disc list-inside text-gray-700 mt-2 space-y-1">
-                          <li>Question 1: Explain the main concept covered in this lesson.</li>
-                          <li>Question 2: Provide an example scenario where this applies.</li>
-                        </ul>
+                      <div className="text-right">
+                        <motion.button
+                          whileHover={{ scale:1.05 }}
+                          whileTap={{ scale:0.95 }}
+                          onClick={goToQuiz}
+                          className="px-4 py-2 rounded-md bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition"
+                        >
+                          Next: Take Quiz
+                        </motion.button>
                       </div>
-                      <div>
-                        <h3 className="text-xl font-semibold text-gray-800">Interactive Activity</h3>
-                        <p className="text-gray-700">Imagine a scenario and drag-and-drop elements to form a solution. (Placeholder)</p>
-                        <div className="mt-4 p-4 bg-gray-50 border-dashed border-2 border-gray-300 text-gray-500 italic rounded">
-                          Interactive activity placeholder area
+                    </motion.div>
+                  )}
+
+                  {viewState === 'quiz' && (
+                    <motion.div
+                      key="quizView"
+                      initial={{ x: 50, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      exit={{ x: -50, opacity: 0 }}
+                      transition={{ type: 'spring', stiffness: 80, damping: 20 }}
+                      className="space-y-6"
+                    >
+                      <h3 className="text-xl font-semibold text-gray-800">Test Your Knowledge</h3>
+                      <p className="text-gray-700">Select the best answers to these questions:</p>
+                      <div className="space-y-4">
+                        {quizQuestions.map((q) => (
+                          <motion.div
+                            key={q.id}
+                            className="p-4 bg-gray-50 rounded-md"
+                            initial={{opacity:0,y:10}}
+                            animate={{opacity:1,y:0}}
+                          >
+                            <h4 className="font-semibold text-gray-900 mb-2">{q.question}</h4>
+                            <div className="space-y-2">
+                              {q.options.map((opt, i) => (
+                                <label key={i} className="flex items-center gap-2">
+                                  <input
+                                    type="radio"
+                                    name={q.id}
+                                    checked={quizAnswers[q.id] === i.toString()}
+                                    onChange={() => handleQuizAnswer(q.id,i)}
+                                    className="form-radio h-4 w-4 text-indigo-600"
+                                  />
+                                  <span className="text-gray-700">{opt}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                      <div className="text-right">
+                        {quizScore === null ? (
+                          <motion.button
+                            whileHover={{ scale:1.05 }}
+                            whileTap={{ scale:0.95 }}
+                            onClick={submitQuiz}
+                            className="px-4 py-2 rounded-md bg-green-600 text-white font-semibold hover:bg-green-700 transition"
+                          >
+                            Submit Quiz
+                          </motion.button>
+                        ) : (
+                          <>
+                            <p className="text-gray-800 font-semibold">You scored {quizScore}/{quizQuestions.length}</p>
+                            <motion.button
+                              whileHover={{ scale:1.05 }}
+                              whileTap={{ scale:0.95 }}
+                              onClick={goToActivity}
+                              className="mt-4 px-4 py-2 rounded-md bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition"
+                            >
+                              Next: Interactive Activity
+                            </motion.button>
+                          </>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {viewState === 'activity' && (
+                    <motion.div
+                      key="activityView"
+                      initial={{ x: 50, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      exit={{ x: -50, opacity: 0 }}
+                      transition={{ type: 'spring', stiffness: 80, damping: 20 }}
+                      className="space-y-6"
+                    >
+                      <h3 className="text-xl font-semibold text-gray-800">Interactive Activity</h3>
+                      <p className="text-gray-700">
+                        Engage with this interactive simulation. Imagine a scenario where you must apply what you’ve learned:
+                      </p>
+                      <p className="text-gray-700 mb-4">
+                        Drag and drop elements into the correct sequence, try rearranging components to form a solution that aligns with the lesson concepts. For example, place "Step 1", "Step 2", and "Step 3" in the correct order.
+                      </p>
+                      {/* Placeholder activity area */}
+                      <div className="w-full p-8 bg-gray-50 border-dashed border-2 border-gray-300 rounded text-gray-500 flex flex-col items-center">
+                        <span className="mb-4 italic">Drag & Drop Activity Placeholder</span>
+                        {/* Add a few draggable items (for concept) */}
+                        <div className="flex gap-4">
+                          <div className="p-2 bg-white shadow rounded cursor-move">Step 1</div>
+                          <div className="p-2 bg-white shadow rounded cursor-move">Step 2</div>
+                          <div className="p-2 bg-white shadow rounded cursor-move">Step 3</div>
                         </div>
+                      </div>
+
+                      <div className="text-right">
+                        <motion.button
+                          whileHover={{ scale:1.05 }}
+                          whileTap={{ scale:0.95 }}
+                          onClick={() => {
+                            // After activity, return to module view
+                            setViewState('module')
+                            setSelectedLesson(null)
+                          }}
+                          className="px-4 py-2 rounded-md bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+                        >
+                          Finish Activity
+                        </motion.button>
                       </div>
                     </motion.div>
                   )}
