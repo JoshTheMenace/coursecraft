@@ -17,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} overflow-hidden relative`}>
+      <body className={`${inter.className} relative`}>
         {/* Client-side background animation */}
         <BackgroundAnimation />
         {children}
