@@ -1,101 +1,169 @@
-import Image from "next/image";
+'use client'
+
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [generatedCourse, setGeneratedCourse] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const handleGenerate = async () => {
+    setLoading(true)
+    const res = await fetch('/generate', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ title, description })
+    })
+    const data = await res.json()
+    setGeneratedCourse(data.course)
+    setLoading(false)
+  }
+
+  const handleDownloadFlutterCode = async () => {
+    const res = await fetch('/flutter-code', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ course: generatedCourse })
+    })
+    const blob = await res.blob()
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'flutter_code.zip'
+    link.click()
+    window.URL.revokeObjectURL(url)
+  }
+
+  return (
+    <main className="p-8 min-h-screen flex flex-col items-center justify-center relative z-10">
+      <motion.div
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 80, damping: 15 }}
+        className="w-full max-w-xl bg-white/60 rounded-xl shadow-2xl p-8 space-y-6 backdrop-blur-md border border-white/40"
+      >
+        <motion.h1
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1, type: 'spring', stiffness: 70 }}
+          className="text-3xl font-extrabold text-gray-900 text-center drop-shadow-sm"
+        >
+          Create Your Dream Course
+        </motion.h1>
+
+        <motion.div
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2, type: 'spring', stiffness: 70 }}
+          className="space-y-4"
+        >
+          <input
+            className="w-full px-4 py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-indigo-400 text-gray-700"
+            placeholder="Course Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+          <textarea
+            className="w-full px-4 py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-indigo-400 text-gray-700"
+            placeholder="Course Description"
+            rows={4}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleGenerate}
+            className="w-full py-3 rounded-md bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-all"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            {loading ? 'Generating...' : 'Generate Course'}
+          </motion.button>
+        </motion.div>
+      </motion.div>
+
+      <AnimatePresence>
+        {generatedCourse && !loading && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ type: 'spring', stiffness: 80, damping: 15, delay: 0.2 }}
+            className="mt-12 w-full max-w-3xl bg-white/70 rounded-xl shadow-xl p-8 space-y-6 backdrop-blur-sm border border-white/40"
           >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+            <motion.h2 
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="text-2xl font-bold text-gray-800">
+              Preview
+            </motion.h2>
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{
+                visible: {
+                  transition: {
+                    staggerChildren: 0.1
+                  }
+                }
+              }}
+              className="space-y-2"
+            >
+              <motion.h3 
+                variants={{ hidden: {opacity: 0, y:10}, visible: {opacity:1, y:0}}}
+                className="text-xl font-bold text-gray-900"
+              >
+                {generatedCourse.title}
+              </motion.h3>
+              <motion.p 
+                variants={{ hidden: {opacity: 0, y:10}, visible: {opacity:1, y:0}}}
+                className="text-gray-700"
+              >
+                {generatedCourse.description}
+              </motion.p>
+              <motion.div
+                className="border-t pt-4 space-y-2"
+                variants={{ visible: { transition: { staggerChildren: 0.05 }}}}
+              >
+                {generatedCourse.lessons?.map((lesson: any, idx: number) => (
+                  <motion.div 
+                    key={idx} 
+                    className="p-4 rounded-md bg-gray-50 hover:bg-gray-100 transition"
+                    variants={{ hidden: {opacity:0,y:5}, visible: {opacity:1,y:0}}}
+                  >
+                    <h4 className="font-semibold text-gray-800">{lesson.title}</h4>
+                    <p className="text-gray-600 text-sm">{lesson.content}</p>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </motion.div>
+            <motion.div
+              className="flex gap-4 pt-4"
+              initial={{ opacity: 0, x:30 }}
+              animate={{ opacity:1, x:0 }}
+              transition={{ delay: 0.3, type:'spring', stiffness:70 }}
+            >
+              <motion.button
+                onClick={handleDownloadFlutterCode}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-4 py-2 rounded-md bg-teal-600 text-white hover:bg-teal-700 transition-transform"
+              >
+                Generate Flutter Code
+              </motion.button>
+              <motion.a
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                href="#"
+                className="px-4 py-2 rounded-md bg-pink-600 text-white hover:bg-pink-700 transition-transform"
+              >
+                Edit Course
+              </motion.a>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </main>
+  )
 }
