@@ -9,17 +9,45 @@ export default function Home() {
   const [generatedCourse, setGeneratedCourse] = useState<any>(null)
   const [loading, setLoading] = useState(false)
 
+  // const handleGenerate = async () => {
+  //   setLoading(true)
+  //   const res = await fetch('/generate', {
+  //     method: 'POST',
+  //     headers: {'Content-Type': 'application/json'},
+  //     body: JSON.stringify({ title, description })
+  //   })
+  //   const data = await res.json()
+  //   setGeneratedCourse(data.course)
+  //   setLoading(false)
+  // }
+
   const handleGenerate = async () => {
-    setLoading(true)
-    const res = await fetch('/generate', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ title, description })
-    })
-    const data = await res.json()
-    setGeneratedCourse(data.course)
-    setLoading(false)
-  }
+    try {
+      setLoading(true);
+      const res = await fetch('/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description }),
+      });
+  
+      if (!res.ok) {
+        const error = await res.json();
+        console.error('API Error:', error);
+        alert('Failed to generate course. Please try again.');
+        return;
+      }
+  
+      const data = await res.json();
+      setGeneratedCourse(data.course);
+    } catch (error) {
+      console.error('Error fetching course:', error);
+      alert('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
 
   const handleDownloadFlutterCode = async () => {
     const res = await fetch('/flutter-code', {
@@ -44,6 +72,13 @@ export default function Home() {
 
   return (
     <main className="p-8 min-h-screen flex flex-col items-center justify-center relative z-10">
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="loader"></div>
+        </div>
+      )}
+
+
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}

@@ -1,7 +1,7 @@
 // app/preview/[id]/quiz/[quizId]/QuizPageClient.tsx
 'use client'
 
-import { ThemeProvider } from '@/app/ThemeProvider'
+import { useCourse } from '../../CourseContextProvider';
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import React from 'react'
@@ -9,39 +9,47 @@ import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
 
 interface Question {
   id: string
-  prompt: string
+  prompt?: string // Adjust if needed: if original uses `prompt` or `question`
+  question?: string
   options: string[]
   correctIndex: number
 }
 
 export default function QuizPageClient({
   params,
-  theme,
-  quiz
 }: {
   params: {id:string, quizId:string}
-  theme: {primaryColor:string, secondaryColor:string, fontFamily:string}
-  quiz: {
-    // title: string,
-    questions: Question[],
-    nextActivityId?: string
-  }
 }) {
+  const courseData = useCourse();
+  if (!courseData) return <div>No course data.</div>;
+
+  const { id, quizId } = params;
+
+  // quizId might be "module1_quiz1"
+  const [moduleId, quizIdPart] = quizId.split('_');
+
+  const foundModule = courseData.modules.find(m => m.id === moduleId);
+  if (!foundModule || !foundModule.quiz || foundModule.quiz.id !== quizIdPart) {
+    return <div>Quiz not found</div>;
+  }
+
+  const quiz = foundModule.quiz;
 
   return (
-    <ThemeProvider theme={theme}>
-      <main className="min-h-screen p-8" style={{fontFamily:'var(--font-family)', backgroundColor:'var(--color-bg)'}}>
-        <motion.div
-          initial={{opacity:0,y:20}}
-          animate={{opacity:1,y:0}}
-          transition={{type:'spring',stiffness:80,damping:20}}
-          className="max-w-4xl mx-auto"
-        >
-          {/* <h1 className="text-3xl font-extrabold mb-4" style={{color:'var(--color-primary)'}}>
-            {quiz.title}
-          </h1> */}
-          <p className="mb-6 text-gray-800">Answer the following questions:</p>
-          {quiz.questions.map((q, qIdx) => (
+    <main className="min-h-screen p-8" style={{fontFamily:'var(--font-family)', backgroundColor:'var(--color-bg)'}}>
+      <motion.div
+        initial={{opacity:0,y:20}}
+        animate={{opacity:1,y:0}}
+        transition={{type:'spring',stiffness:80,damping:20}}
+        className="max-w-4xl mx-auto"
+      >
+        <h1 className="text-3xl font-extrabold mb-4" style={{color:'var(--color-primary)'}}>
+          {quiz.title}
+        </h1>
+        <p className="mb-6 text-gray-800">Answer the following questions:</p>
+        {quiz.questions.map((q: Question, qIdx: number) => {
+          const prompt = q.prompt || q.question; // handle whichever field your JSON uses
+          return (
             <motion.div
               key={q.id}
               className="p-4 bg-gray-50 rounded mb-4"
@@ -50,7 +58,7 @@ export default function QuizPageClient({
             >
               <div className="flex items-center gap-2 mb-2">
                 <QuestionMarkCircleIcon className="h-6 w-6 text-gray-600" />
-                <h2 className="font-semibold text-gray-900">{q.prompt}</h2>
+                <h2 className="font-semibold text-gray-900">{prompt}</h2>
               </div>
               {q.options.map((opt, i) => (
                 <div key={i} className="flex items-center gap-2 mb-1">
@@ -59,18 +67,30 @@ export default function QuizPageClient({
                 </div>
               ))}
             </motion.div>
-          ))}
+          )
+        })}
 
+        {/* Next might be activity or back to course */}
+        {foundModule.interactiveActivities && foundModule.interactiveActivities.length > 0 ? (
           <div className="text-right">
             <Link 
-              href={quiz.nextActivityId ? `/preview/${params.id}/activity/${quiz.nextActivityId}` : `/preview/${params.id}`}
+              href={`/preview/${id}/activity/${moduleId}_${foundModule.interactiveActivities[0].id}`} 
               className="inline-block px-4 py-2 rounded bg-pink-600 text-white hover:bg-pink-700 mt-4"
             >
-              Submit & Continue
+              Submit & Continue to Activity
             </Link>
           </div>
-        </motion.div>
-      </main>
-    </ThemeProvider>
+        ) : (
+          <div className="text-right">
+            <Link 
+              href={`/preview/${id}`} 
+              className="inline-block px-4 py-2 rounded bg-pink-600 text-white hover:bg-pink-700 mt-4"
+            >
+              Finish
+            </Link>
+          </div>
+        )}
+      </motion.div>
+    </main>
   )
 }

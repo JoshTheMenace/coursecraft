@@ -1,107 +1,175 @@
+// app/preview/[id]/CourseHomeClient.tsx
 'use client'
 
-import { ThemeProvider } from '@/app/ThemeProvider'
-import { motion } from 'framer-motion'
+import { useCourse } from './CourseContextProvider';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link'
-import React from 'react'
-import { ArrowRightCircleIcon, PuzzlePieceIcon, AcademicCapIcon } from '@heroicons/react/24/outline'
+import { useState } from 'react'
+import { BookOpenIcon, ClipboardDocumentIcon, PuzzlePieceIcon } from '@heroicons/react/24/outline'
 
-export default function CourseHomeClient({ course, theme, id }: { course: any; theme: any; id: string }) {
+
+export default function CourseHomeClient({ id }: { id: string }) {
+  const courseData = useCourse();
+
+  if (!courseData) {
+    return <div>Error: No course data.</div>;
+  }
+
+  const { title, description, modules } = courseData;
+
+  // A subtle pattern as a data URL (SVG). It's a very faint grid pattern.
+  // You can tweak colors for readability. We use var(--color-bg) for theme integration.
+  const patternDataUrl = `data:image/svg+xml;utf8,<svg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><rect width='40' height='40' fill='%23ffffff'/><path d='M0 39.5 H40 M39.5 0 V40' stroke='%23ccc' stroke-width='0.25'/></svg>`;
+  
   return (
-    <ThemeProvider theme={theme}>
-      <main 
-        className="min-h-screen flex flex-col"
-        style={{
-          fontFamily: 'var(--font-family)',
-          background: `linear-gradient(to bottom right, var(--color-bg) 0%, #f4f4f4 100%)`
-        }}
+    <main 
+      className="min-h-screen flex flex-col overflow-y-auto relative"
+      style={{
+        fontFamily: 'var(--font-family)',
+        backgroundColor: 'var(--color-bg)',
+        backgroundImage: `url("${patternDataUrl}")`,
+        backgroundRepeat: 'repeat',
+        backgroundSize: '40px 40px',
+      }}
+    >
+      <header className="py-4 px-8 flex items-center justify-between bg-white shadow-sm z-10 relative">
+        <div className="flex items-center gap-2">
+          <BookOpenIcon className="h-8 w-8" style={{ color: 'var(--color-primary)' }} />
+          <span className="text-2xl font-bold" style={{color:'var(--color-primary)'}}>
+            {title}
+          </span>
+        </div>
+      </header>
+
+      <motion.div
+        initial={{opacity:0, y:20}}
+        animate={{opacity:1, y:0}}
+        transition={{type:'spring', stiffness:80, damping:20, delay:0.1}}
+        className="flex-1 py-16 px-8 w-1/2 mx-auto overflow-y-auto relative"
       >
-        {/* Top Nav / Header */}
-        <header className="py-4 px-8 flex items-center justify-between bg-white shadow-sm">
-          <div className="flex items-center gap-2">
-            <AcademicCapIcon className="h-8 w-8" style={{ color: 'var(--color-primary)' }} />
-            <span className="text-2xl font-bold" style={{color:'var(--color-primary)'}}>
-              {course.title}
-            </span>
-          </div>
-        </header>
+        <section className="mb-12">
+          <h1 className="text-5xl font-extrabold mb-4" style={{color:'var(--color-primary)'}}>
+            {title}
+          </h1>
+          <p className="text-gray-700 text-lg leading-relaxed">{description}</p>
+        </section>
 
-        <motion.div
-          initial={{opacity:0, y:20}}
-          animate={{opacity:1, y:0}}
-          transition={{type:'spring', stiffness:80, damping:20, delay:0.1}}
-          className="flex-1 py-16 px-8 max-w-5xl mx-auto"
-        >
-          {/* Course Intro Section */}
-          <section className="mb-12">
-            <h1 className="text-5xl font-extrabold mb-4" style={{color:'var(--color-primary)'}}>
-              {course.title}
-            </h1>
-            <p className="text-gray-700 text-lg leading-relaxed">{course.description}</p>
-          </section>
+        <ModulesSection modules={modules} id={id} />
+      </motion.div>
+    </main>
+  )
+}
 
-          {/* Modules Section */}
-          <section>
-            <h2 className="text-3xl font-bold mb-6" style={{color:'var(--color-primary)'}}>Modules</h2>
-            <div className="space-y-6">
-              {course.modules.map((m: any, mIdx: number) => (
+
+
+
+
+export function ModulesSection({ modules, id }: { modules: any[]; id: string }) {
+  const [openModuleIndex, setOpenModuleIndex] = useState<number | null>(null);
+
+  const toggleModule = (index: number) => {
+    setOpenModuleIndex(openModuleIndex === index ? null : index);
+  };
+
+  return (
+    <section>
+      <h2 className="text-3xl font-bold mb-6" style={{ color: 'var(--color-primary)' }}>
+        Modules
+      </h2>
+      <div className="space-y-4">
+        {modules.map((m: any, mIdx: number) => (
+          <motion.div
+            key={m.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 80, damping: 20, delay: 0.1 + mIdx * 0.05 }}
+            className="border border-gray-300 rounded-lg shadow-sm overflow-hidden h-1/5"
+          >
+            {/* Module Header */}
+            <div
+              className="flex items-center justify-between px-6 py-4 bg-gray-100 cursor-pointer hover:bg-gray-200 transition"
+              onClick={() => toggleModule(mIdx)}
+            >
+              <h3 className="font-semibold text-lg" style={{ color: 'var(--color-primary)' }}>
+                {m.title}
+              </h3>
+              <span className="text-gray-500">
+                {openModuleIndex === mIdx ? '▲' : '▼'}
+              </span>
+            </div>
+
+            {/* Module Content */}
+            <AnimatePresence>
+              {openModuleIndex === mIdx && (
                 <motion.div
-                  key={mIdx}
-                  initial={{opacity:0,y:10}}
-                  animate={{opacity:1,y:0}}
-                  transition={{type:'spring', stiffness:80, damping:20, delay: 0.1 + mIdx * 0.05}}
-                  className="p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow border-l-4"
-                  style={{borderColor:'var(--color-primary)'}}
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="px-6 py-4 bg-white"
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-2xl" style={{color:'var(--color-primary)'}}>
-                      {m.title}
-                    </h3>
-                  </div>
                   <p className="text-gray-700 mb-4 leading-relaxed">{m.description}</p>
 
-                  {/* Module Items: Lessons, Quizzes, Interactive Activities */}
-                  <div className="space-y-4">
-                    {/* Lessons */}
-                    {m.lessons.map((l: any, lIdx: number) => (
-                      <Link 
-                        key={`lesson-${lIdx}`} 
-                        href={`/preview/${id}/lesson/${m.id}_${l.id}`}
-                        className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 hover:underline group transition-colors"
-                      >
-                        <ArrowRightCircleIcon className="h-5 w-5 text-indigo-400 group-hover:text-indigo-600 transition-colors" />
-                        <span className="text-lg">{`Lesson: ${l.title}`}</span>
-                      </Link>
-                    ))}
-                    {/* Quiz */}
-                    {m.quiz && (
-                      <Link
-                        key={`quiz-${m.quiz.id}`}
+                  {/* Lessons */}
+                  {m.lessons && m.lessons.length > 0 && (
+                    <div className="mb-6">
+                      <h4 className="text-lg font-bold mb-4" style={{ color: 'var(--color-primary)' }}>
+                        Lessons
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {m.lessons.map((l: any) => (
+                          <a
+                            key={l.id}
+                            href={`/preview/${id}/lesson/${m.id}_${l.id}`}
+                            className="block px-4 py-3 bg-indigo-500 text-white font-semibold rounded-lg shadow hover:bg-indigo-600 hover:shadow-md transition-all"
+                          >
+                            {l.title}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Quiz */}
+                  {m.quiz && (
+                    <div className="mb-6">
+                      <h4 className="text-lg font-bold mb-4" style={{ color: 'var(--color-primary)' }}>
+                        Quiz
+                      </h4>
+                      <a
                         href={`/preview/${id}/quiz/${m.id}_${m.quiz.id}`}
-                        className="flex items-center gap-2 text-green-600 hover:text-green-800 hover:underline group transition-colors"
+                        className="inline-block px-4 py-3 bg-pink-500 text-white font-semibold rounded-lg shadow hover:bg-pink-600 hover:shadow-md transition-all"
                       >
-                        <AcademicCapIcon className="h-5 w-5 text-green-400 group-hover:text-green-600 transition-colors" />
-                        <span className="text-lg">{`Quiz: ${m.quiz.id}`}</span>
-                      </Link>
-                    )}
-                    {/* Interactive Activities */}
-                    {m.interactiveActivities && m.interactiveActivities.map((a: any, aIdx: number) => (
-                      <Link
-                        key={`activity-${aIdx}`}
-                        href={`/preview/${id}/activity/${m.id}_${a.id}`}
-                        className="flex items-center gap-2 text-purple-600 hover:text-purple-800 hover:underline group transition-colors"
-                      >
-                        <PuzzlePieceIcon className="h-5 w-5 text-purple-400 group-hover:text-purple-600 transition-colors" />
-                        <span className="text-lg">{`Activity: ${a.instructions}`}</span>
-                      </Link>
-                    ))}
-                  </div>
+                        Take the Quiz
+                      </a>
+                    </div>
+                  )}
+
+                  {/* Interactive Activities */}
+                  {m.interactiveActivities && m.interactiveActivities.length > 0 && (
+                    <div>
+                      <h4 className="text-lg font-bold mb-4" style={{ color: 'var(--color-primary)' }}>
+                        Interactive Activities
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {m.interactiveActivities.map((act: any) => (
+                          <a
+                            key={act.id}
+                            href={`/preview/${id}/activity/${m.id}_${act.id}`}
+                            className="block px-4 py-3 bg-green-500 text-white font-semibold rounded-lg shadow hover:bg-green-600 hover:shadow-md transition-all"
+                          >
+                            {act.type === 'matching' ? 'Matching Activity' : 'Activity'}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </motion.div>
-              ))}
-            </div>
-          </section>
-        </motion.div>
-      </main>
-    </ThemeProvider>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        ))}
+      </div>
+    </section>
   );
 }

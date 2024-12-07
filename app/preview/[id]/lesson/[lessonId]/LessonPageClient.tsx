@@ -1,58 +1,76 @@
+// app/preview/[id]/lesson/[lessonId]/LessonPageClient.tsx
 'use client'
 
-import { ThemeProvider } from '@/app/ThemeProvider'
+import { useCourse } from '../../CourseContextProvider';
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import React from 'react'
 import { PlayCircleIcon, PhotoIcon, DocumentTextIcon } from '@heroicons/react/24/outline'
 
-type LessonContentItem =
-  | { type: 'text'; data: string }
-  | { type: 'image'; src: string; alt: string }
-  | { type: 'video'; src: string; caption: string };
-
-type ModuleItem = { type: 'lesson'; id: string } | { type: 'quiz'; id: string } | { type: 'activity'; id: string };
+type LessonContentItem = 
+  | { type: 'text', data: string }
+  | { type: 'image', src: string, alt: string }
+  | { type: 'video', src: string, caption: string }
 
 export default function LessonPageClient({
   params,
-  theme,
-  lesson,
-  quizId,
-  nextItem,
 }: {
-  params: { id: string; lessonId: string };
-  theme: { primaryColor: string; secondaryColor: string; fontFamily: string };
-  lesson: { title: string; content: LessonContentItem[] };
-  quizId: string | null;
-  nextItem: ModuleItem | null;
+  params: {id:string, lessonId:string},
 }) {
+  const courseData = useCourse();
+
+  if (!courseData) return <div>Error: No course data.</div>;
+
+  const { id, lessonId } = params;
+
+  const [moduleId, lessonIdPart] = lessonId.split('_');
+
+  const foundModule = courseData.modules.find((mod) => mod.id === moduleId);
+  if (!foundModule) return <div>Module not found</div>;
+
+  const foundLesson = foundModule.lessons.find((les: any) => les.id === lessonIdPart);
+  if (!foundLesson) return <div>Lesson not found</div>;
+
+  // Transform lesson content
+  const transformedContent: LessonContentItem[] = foundLesson.content.map((item: any) => {
+    if (item.type === 'text') {
+      return { type: 'text', data: item.data };
+    } else if (item.type === 'image') {
+      return { type: 'image', src: item.src, alt: item.alt };
+    } else if (item.type === 'video') {
+      return { type: 'video', src: item.src, caption: item.caption };
+    }
+    throw new Error(`Unknown content type: ${item.type}`);
+  });
+
+  // Determine next item (quiz or next lesson)
+  const currentIndex = foundModule.lessons.findIndex((les: any) => les.id === lessonIdPart);
+  let nextHref: string | null = null;
+  if (currentIndex >= 0 && currentIndex < foundModule.lessons.length - 1) {
+    const nextLesson = foundModule.lessons[currentIndex + 1];
+    nextHref = `/preview/${id}/lesson/${moduleId}_${nextLesson.id}`;
+  } else if (foundModule.quiz) {
+    nextHref = `/preview/${id}/quiz/${moduleId}_${foundModule.quiz.id}`;
+  } else if (foundModule.interactiveActivities && foundModule.interactiveActivities.length > 0) {
+    const act = foundModule.interactiveActivities[0];
+    nextHref = `/preview/${id}/activity/${moduleId}_${act.id}`;
+  }
+
   const renderContent = (item: LessonContentItem, index: number) => {
-    switch (item.type) {
+    switch(item.type) {
       case 'text':
         return (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 80, damping: 20, delay: index * 0.05 }}
-            className="mb-6"
-          >
+          <motion.div key={index} initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{type:'spring', stiffness:80, damping:20, delay:index * 0.05}} className="mb-6">
             <div className="flex items-center gap-2 mb-2">
               <DocumentTextIcon className="h-6 w-6 text-gray-500" />
               <span className="font-semibold text-gray-900">Text Content</span>
             </div>
             <p className="text-gray-800 leading-relaxed whitespace-pre-line">{item.data}</p>
           </motion.div>
-        );
+        )
       case 'image':
         return (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 80, damping: 20, delay: index * 0.05 }}
-            className="mb-6"
-          >
+          <motion.div key={index} initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{type:'spring', stiffness:80, damping:20, delay:index * 0.05}} className="mb-6">
             <div className="flex items-center gap-2 mb-2">
               <PhotoIcon className="h-6 w-6 text-gray-500" />
               <span className="font-semibold text-gray-900">Image</span>
@@ -60,16 +78,10 @@ export default function LessonPageClient({
             <img src={item.src} alt={item.alt} className="rounded shadow w-full max-w-md" />
             <p className="text-gray-600 mt-2 text-sm italic">{item.alt}</p>
           </motion.div>
-        );
+        )
       case 'video':
         return (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 80, damping: 20, delay: index * 0.05 }}
-            className="mb-6"
-          >
+          <motion.div key={index} initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{type:'spring', stiffness:80, damping:20, delay:index * 0.05}} className="mb-6">
             <div className="flex items-center gap-2 mb-2">
               <PlayCircleIcon className="h-6 w-6 text-gray-500" />
               <span className="font-semibold text-gray-900">Video</span>
@@ -80,63 +92,37 @@ export default function LessonPageClient({
             </video>
             <p className="text-gray-600 mt-2 text-sm italic">{item.caption}</p>
           </motion.div>
-        );
+        )
     }
-  };
-
-  const getNextItemLink = () => {
-    if (!nextItem) {
-      return `/preview/${params.id}`;
-    }
-    const nextItemType = nextItem.type;
-    const nextItemId = nextItem.id;
-    return `/preview/${params.id}/${nextItemType}/${nextItemId}`;
-  };
-
-  const getNextItemLabel = () => {
-    if (!nextItem) {
-      return 'Back to Course Home';
-    }
-    if (nextItem.type === 'lesson') {
-      return 'Next: Lesson';
-    }
-    if (nextItem.type === 'quiz') {
-      return 'Next: Quiz';
-    }
-    if (nextItem.type === 'activity') {
-      return 'Next: Interactive Activity';
-    }
-  };
+  }
 
   return (
-    <ThemeProvider theme={theme}>
-      <main
-        className="min-h-screen p-8"
-        style={{ fontFamily: 'var(--font-family)', backgroundColor: 'var(--color-bg)' }}
+    <main className="min-h-screen p-8" style={{fontFamily:'var(--font-family)', backgroundColor:'var(--color-bg)'}}>
+      <motion.div
+        initial={{opacity:0,y:20}}
+        animate={{opacity:1,y:0}}
+        transition={{type:'spring',stiffness:80,damping:20}}
+        className="max-w-4xl mx-auto"
       >
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 80, damping: 20 }}
-          className="max-w-4xl mx-auto"
-        >
-          <h1 className="text-3xl font-extrabold mb-8" style={{ color: 'var(--color-primary)' }}>
-            {lesson.title}
-          </h1>
+        <h1 className="text-3xl font-extrabold mb-8" style={{color:'var(--color-primary)'}}>
+          {foundLesson.title}
+        </h1>
 
-          {/* Render lesson content */}
-          <div className="space-y-6">{lesson.content.map((item, i) => renderContent(item, i))}</div>
+        <div className="space-y-6">
+          {transformedContent.map((item, i) => renderContent(item, i))}
+        </div>
 
-          <div className="text-right mt-8">
-            <Link
-              href={getNextItemLink()}
+        <div className="text-right mt-8">
+          {nextHref && (
+            <Link 
+              href={nextHref} 
               className="inline-block px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700"
             >
-              {getNextItemLabel()}
+              Next
             </Link>
-          </div>
-        </motion.div>
-      </main>
-    </ThemeProvider>
-  );
+          )}
+        </div>
+      </motion.div>
+    </main>
+  )
 }
