@@ -35,8 +35,16 @@ export default function QuizPageClient({
 
   const quiz = foundModule.quiz;
 
+  const patternDataUrl = `data:image/svg+xml;utf8,<svg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><rect width='40' height='40' fill='%23ffffff'/><path d='M0 39.5 H40 M39.5 0 V40' stroke='%23ccc' stroke-width='0.25'/></svg>`;
+
   return (
-    <main className="min-h-screen p-8" style={{fontFamily:'var(--font-family)', backgroundColor:'var(--color-bg)'}}>
+    <main className="min-h-screen p-8" style={{
+      fontFamily:'var(--font-family)',
+      backgroundColor: 'var(--color-bg)',
+        backgroundImage: `url("${patternDataUrl}")`,
+        backgroundRepeat: 'repeat',
+        backgroundSize: '40px 40px',
+       }}>
       <motion.div
         initial={{opacity:0,y:20}}
         animate={{opacity:1,y:0}}
@@ -44,7 +52,7 @@ export default function QuizPageClient({
         className="max-w-4xl mx-auto"
       >
         <h1 className="text-3xl font-extrabold mb-4" style={{color:'var(--color-primary)'}}>
-          {quiz.title}
+          {quiz.title || 'Quiz'}
         </h1>
         <p className="mb-6 text-gray-800">Answer the following questions:</p>
         {quiz.questions.map((q: Question, qIdx: number) => {

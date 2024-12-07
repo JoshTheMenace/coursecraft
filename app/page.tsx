@@ -1,25 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function Home() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [generatedCourse, setGeneratedCourse] = useState<any>(null)
   const [loading, setLoading] = useState(false)
-
-  // const handleGenerate = async () => {
-  //   setLoading(true)
-  //   const res = await fetch('/generate', {
-  //     method: 'POST',
-  //     headers: {'Content-Type': 'application/json'},
-  //     body: JSON.stringify({ title, description })
-  //   })
-  //   const data = await res.json()
-  //   setGeneratedCourse(data.course)
-  //   setLoading(false)
-  // }
 
   const handleGenerate = async () => {
     try {
@@ -38,6 +26,8 @@ export default function Home() {
       }
   
       const data = await res.json();
+      console.log('Generated data:', data);
+      console.log('Generated course:', data.course);
       setGeneratedCourse(data.course);
     } catch (error) {
       console.error('Error fetching course:', error);
@@ -46,8 +36,6 @@ export default function Home() {
       setLoading(false);
     }
   };
-  
-
 
   const handleDownloadFlutterCode = async () => {
     const res = await fetch('/flutter-code', {
@@ -65,18 +53,56 @@ export default function Home() {
   }
 
   const openPreview = () => {
-    // In a real scenario, you would have a generated ID from Firebase.
-    const courseId = 'abc123'
+    const courseId = generatedCourse?.id || 'course-123'
     window.open(`/preview/${courseId}`, '_blank')
   }
 
   return (
     <main className="p-8 min-h-screen flex flex-col items-center justify-center relative z-10">
-      {loading && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="loader"></div>
-        </div>
-      )}
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            key="loading-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: 'tween', duration: 0.5 }}
+            className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600"
+            style={{
+              backgroundSize: '400% 400%',
+              animation: 'gradientFlow 15s ease infinite'
+            }}
+          >
+            <style jsx>{`
+              @keyframes gradientFlow {
+                0% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+              }
+            `}</style>
+
+            {/* Centerpiece */}
+            <div className="relative flex flex-col items-center">
+              {/* Outer glowing ring */}
+              <div className="absolute w-48 h-48 rounded-full bg-gradient-to-tr from-white to-transparent animate-ping-slow" style={{filter:'blur(40px)'}}>
+              </div>
+
+              {/* Spinning orb */}
+              <div className="relative w-24 h-24 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full bg-white opacity-10 blur-xl"></div>
+                <div className="w-full h-full rounded-full bg-gradient-to-r from-white to-fuchsia-200 flex items-center justify-center animate-spin-slow">
+                  <div className="w-3/4 h-3/4 rounded-full bg-gradient-to-br from-pink-300 via-white to-purple-200 shadow-lg"></div>
+                </div>
+              </div>
+
+              {/* Loading text */}
+              <div className="mt-6 text-white font-semibold text-xl tracking-widest drop-shadow-lg animate-pulse">
+                Loading...
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
 
       <motion.div

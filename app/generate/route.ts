@@ -82,6 +82,9 @@ The title is "${title}". Generate the course around this, "${description}"
     });
 
     const generatedContent = response.choices[0]?.message?.content || '';
+
+    console.log('Generated course from route:', generatedContent);
+
     const course = JSON.parse(generatedContent);
 
     const courseId = course.id || `course-${Date.now()}`;
@@ -90,7 +93,7 @@ The title is "${title}". Generate the course around this, "${description}"
     const courseRef = doc(collection(db, 'courses'), courseId);
     await setDoc(courseRef, { ...course, id: courseId });
 
-    return NextResponse.json({ courseId });
+    return NextResponse.json({ course, courseId });
   } catch (error) {
     console.error('Error generating course:', error);
     return NextResponse.json({ error: 'Failed to generate course.' }, { status: 500 });

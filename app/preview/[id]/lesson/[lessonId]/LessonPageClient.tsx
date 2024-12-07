@@ -61,20 +61,20 @@ export default function LessonPageClient({
       case 'text':
         return (
           <motion.div key={index} initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{type:'spring', stiffness:80, damping:20, delay:index * 0.05}} className="mb-6">
-            <div className="flex items-center gap-2 mb-2">
+            {/* <div className="flex items-center gap-2 mb-2">
               <DocumentTextIcon className="h-6 w-6 text-gray-500" />
               <span className="font-semibold text-gray-900">Text Content</span>
-            </div>
+            </div> */}
             <p className="text-gray-800 leading-relaxed whitespace-pre-line">{item.data}</p>
           </motion.div>
         )
       case 'image':
         return (
           <motion.div key={index} initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{type:'spring', stiffness:80, damping:20, delay:index * 0.05}} className="mb-6">
-            <div className="flex items-center gap-2 mb-2">
+            {/* <div className="flex items-center gap-2 mb-2">
               <PhotoIcon className="h-6 w-6 text-gray-500" />
               <span className="font-semibold text-gray-900">Image</span>
-            </div>
+            </div> */}
             <img src={item.src} alt={item.alt} className="rounded shadow w-full max-w-md" />
             <p className="text-gray-600 mt-2 text-sm italic">{item.alt}</p>
           </motion.div>
@@ -95,9 +95,17 @@ export default function LessonPageClient({
         )
     }
   }
+  const patternDataUrl = `data:image/svg+xml;utf8,<svg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><rect width='40' height='40' fill='%23ffffff'/><path d='M0 39.5 H40 M39.5 0 V40' stroke='%23ccc' stroke-width='0.25'/></svg>`;
 
   return (
-    <main className="min-h-screen p-8" style={{fontFamily:'var(--font-family)', backgroundColor:'var(--color-bg)'}}>
+    
+    <main className="min-h-screen p-8" style={{
+      fontFamily:'var(--font-family)',
+      backgroundColor: 'var(--color-bg)',
+        backgroundImage: `url("${patternDataUrl}")`,
+        backgroundRepeat: 'repeat',
+        backgroundSize: '40px 40px',
+       }}>
       <motion.div
         initial={{opacity:0,y:20}}
         animate={{opacity:1,y:0}}
@@ -108,7 +116,7 @@ export default function LessonPageClient({
           {foundLesson.title}
         </h1>
 
-        <div className="space-y-6">
+        <div className="space-y-6 shadow-lg p-4">
           {transformedContent.map((item, i) => renderContent(item, i))}
         </div>
 
