@@ -11,6 +11,59 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY, // Ensure this is set in your environment variables
 });
 
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+const GOOGLE_CSE_ID = process.env.GOOGLE_CSE_ID;
+
+
+
+// Fetch image URL from Google Custom Search API
+async function fetchImageUrlFromGoogle(altText: string): Promise<string> {
+  const query = encodeURIComponent(altText);
+  const url = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${GOOGLE_CSE_ID}&searchType=image&q=${query}`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.error('Google Image Search API error:', await res.text());
+      return 'https://via.placeholder.com/600x400?text=No+Image+Found'; // fallback
+    }
+    const data = await res.json();
+    console.log('Google Image Search API response:', data);
+    // Extract the first image link if available
+    const firstItem = data.items?.[0];
+    const imageUrl = firstItem?.link || 'https://via.placeholder.com/600x400?text=No+Image+Found';
+    return imageUrl;
+  } catch (err) {
+    console.error('Error fetching image from Google:', err);
+    return 'https://via.placeholder.com/600x400?text=Error';
+  }
+}
+
+// Traverse and replace image SRCs
+async function replaceImageSrcs(course: any) {
+  if (!course.modules) return course;
+
+  for (const module of course.modules) {
+    if (module.lessons) {
+      for (const lesson of module.lessons) {
+        if (lesson.content) {
+          for (const contentItem of lesson.content) {
+            if (contentItem.type === 'image' && contentItem.alt) {
+              const newUrl = await fetchImageUrlFromGoogle(contentItem.alt);
+              contentItem.src = newUrl;
+            }
+          }
+        }
+      }
+    }
+    // If you'd like, handle images in quizzes or interactive activities similarly.
+    // For now, we assume only lessons have images.
+  }
+
+  return course;
+}
+
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -78,16 +131,18 @@ The title is "${title}". Generate the course around this, "${description}"
         { role: 'system', content: systemMessage },
         { role: 'user', content: prompt },
       ],
-      max_tokens: 1500,
+      max_tokens: 3000,
     });
 
     const generatedContent = response.choices[0]?.message?.content || '';
 
     console.log('Generated course from route:', generatedContent);
 
-    const course = JSON.parse(generatedContent);
-
+    let course = JSON.parse(generatedContent);
     const courseId = course.id || `course-${Date.now()}`;
+
+    // Replace image srcs using Google Image Search API
+    course = await replaceImageSrcs(course);
 
     // Save to Firebase Firestore
     const courseRef = doc(collection(db, 'courses'), courseId);

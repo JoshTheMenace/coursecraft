@@ -5,7 +5,7 @@ import { BackgroundAnimation } from './BackgroundAnimation'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'Stunning Course Generator',
+  title: 'CourseCraft',
   description: 'Generate courses with a jaw-dropping UI',
 }
 
