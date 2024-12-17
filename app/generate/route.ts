@@ -97,6 +97,7 @@ Your task is to generate a JSON object that represents a complete course structu
               Each content object could be of "type": "text", "image", and include relevant fields:
                 - For "text": { "type": "text", "data": "string of text" }
                 - For "image": { "type": "image", "src": "url to image", "alt": "alt text" }
+            Don't feel required to have an image in each lesson, but where it would make sense to have one.
                 
       - "quiz": object (optional)
           - "id": string - A unique quiz identifier
@@ -109,10 +110,11 @@ Your task is to generate a JSON object that represents a complete course structu
       - "interactiveActivities": array of interactive activity objects (optional)
           Each activity object:
             - "id": string - Unique activity ID
-            - "type": string - Activity type (e.g., "matching", "drag-and-drop", "flashcards")
+            - "type": string - Activity type ("matching", "drag-and-drop")
             - "instructions": string - Instructions for the activity
             - "pairs": array of pair objects. Pair objects contain value and a pair properties for the purpose of the different game types. For matching, one value will match with one pair. For drag and drop, the value might be the label, and the pair might be the order it is supposed to be in, for flashcards, value may be the front, and pair might be the back of the flashcard.
 
+    Make sure to include at least 2 quizes or interactive activities in the course. The course should have at least 4 modules with 3 lessons each.
 - "theme": object
     - Include keys like "primaryColor", "secondaryColor", "fontFamily" etc. depending on the user input
 
@@ -131,7 +133,7 @@ The title is "${title}". Generate the course around this, "${description}"
         { role: 'system', content: systemMessage },
         { role: 'user', content: prompt },
       ],
-      max_tokens: 3000,
+      max_tokens: 10000,
     });
 
     const generatedContent = response.choices[0]?.message?.content || '';

@@ -120,7 +120,7 @@ export function ModulesSection({ modules, id }: { modules: any[]; id: string }) 
                         {m.lessons.map((l: any) => (
                           <a
                             key={l.id}
-                            href={`/preview/${id}/lesson/${m.id}_${l.id}`}
+                            href={`/preview/${id}/lesson/${m.id}~${l.id}`}
                             className="block px-4 py-3 bg-indigo-500 text-white font-semibold rounded-lg shadow hover:bg-indigo-600 hover:shadow-md transition-all"
                           >
                             {l.title}

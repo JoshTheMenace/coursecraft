@@ -23,7 +23,9 @@ export default function LessonPageClient({
 
   const { id, lessonId } = params;
 
-  const [moduleId, lessonIdPart] = lessonId.split('_');
+  const [moduleId, lessonIdPart] = lessonId.split('~');
+  console.log("module id and lesson id part");
+  console.log(moduleId, lessonIdPart);
 
   const foundModule = courseData.modules.find((mod) => mod.id === moduleId);
   if (!foundModule) return <div>Module not found</div>;
@@ -48,12 +50,12 @@ export default function LessonPageClient({
   let nextHref: string | null = null;
   if (currentIndex >= 0 && currentIndex < foundModule.lessons.length - 1) {
     const nextLesson = foundModule.lessons[currentIndex + 1];
-    nextHref = `/preview/${id}/lesson/${moduleId}_${nextLesson.id}`;
+    nextHref = `/preview/${id}/lesson/${moduleId}~${nextLesson.id}`;
   } else if (foundModule.quiz) {
-    nextHref = `/preview/${id}/quiz/${moduleId}_${foundModule.quiz.id}`;
+    nextHref = `/preview/${id}/quiz/${moduleId}~${foundModule.quiz.id}`;
   } else if (foundModule.interactiveActivities && foundModule.interactiveActivities.length > 0) {
     const act = foundModule.interactiveActivities[0];
-    nextHref = `/preview/${id}/activity/${moduleId}_${act.id}`;
+    nextHref = `/preview/${id}/activity/${moduleId}~${act.id}`;
   }
 
   const renderContent = (item: LessonContentItem, index: number) => {

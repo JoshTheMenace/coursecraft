@@ -26,7 +26,7 @@ export default function ActivityPageClient({ params }: { params: {id:string, act
   if (!courseData) return <div>No course data</div>;
 
   const { id, activityId } = params;
-  const [moduleId, activityIdPart] = activityId.split('_');
+  const [moduleId, activityIdPart] = activityId.split('~');
 
   const foundModule = courseData.modules.find((m: any) => m.id === moduleId);
   if (!foundModule || !foundModule.interactiveActivities) return <div>No activity in this module</div>;

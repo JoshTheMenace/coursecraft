@@ -26,7 +26,7 @@ export default function QuizPageClient({
   const { id, quizId } = params;
 
   // quizId might be "module1_quiz1"
-  const [moduleId, quizIdPart] = quizId.split('_');
+  const [moduleId, quizIdPart] = quizId.split('~');
 
   const foundModule = courseData.modules.find(m => m.id === moduleId);
   if (!foundModule || !foundModule.quiz || foundModule.quiz.id !== quizIdPart) {
