@@ -40,7 +40,7 @@ export default async function Layout({
 }) {
   const params = await Promise.resolve(unresolvedParams); // Await resolution of params
   const courseData = await fetchCourseData(params.id);
-
+  
   return (
     <CourseContextProvider courseData={courseData}>
       {children}
