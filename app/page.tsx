@@ -97,7 +97,7 @@ export default function Home() {
 
               {/* Loading text */}
               <div className="mt-6 text-white font-semibold text-xl tracking-widest drop-shadow-lg animate-pulse">
-                Loading...
+                Generating...
               </div>
             </div>
           </motion.div>

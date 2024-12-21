@@ -79,6 +79,7 @@ export async function POST(req: NextRequest) {
 
     const systemMessage = `You are an expert course developer. I want you to produce a detailed, professional, and substantial course outline. Do not include lengthy or detailed lesson text; instead, provide rich outlines, titles, lesson templates, and placeholders where the text would go. The course must have at least 4 modules modules, but feel free to include more. Each module must have multiple lessons. Each lesson must have a good amount of lesson text content blocks, and can include images in image blocks. Each module also must have at least a quiz or an interactive activity. Ensure the course is logically organized, covers a significant breadth of topics, and is worth purchasing.
 
+<<<<<<< HEAD
     Include quizes, lessons, and activities to help educate the users. Activities will be a matching game to match the pairs together. The outline should be able to be used to start creating a very useful and note worthy course. Do not provide too much detail at this point, a rich outline will do.
     Do not include videos in the course outline.
     Use these variables:
@@ -102,6 +103,44 @@ const secondPrompt = (outline: string) => {
   return `Using a valid JSON structure identical the one specified below, now add comprehensive lesson text, detailed descriptions, and rich educational content to each lesson, quiz explanation, and interactive activity instruction. The goal is to make the course feel substantial, professional, and worth purchasing.
 Course outline:
 ${outline}
+=======
+- "id": string - The unique id for the course.
+- "title": string - The title of the course as provided by the user.
+- "description": string - The description of the course as provided by the user.
+- "modules": array of module objects
+    Each module object should have:
+      - "id": string - A unique module identifier
+      - "title": string - Title of the module
+      - "description": string - Description of the module
+      - "lessons": array of lesson objects
+          Each lesson object should have:
+            - "id": string - A unique lesson identifier
+            - "title": string - Title of the lesson
+            - "content": array of content objects representing the lesson content. Make sure there is enough content for a good length of material. There should be more than a line or two of text. Images need to be paired with text to explain the image, and provide a background or context.
+              Each content object could be of "type": "text", "image", and include relevant fields:
+                - For "text": { "type": "text", "data": "string of text" }
+                - For "image": { "type": "image", "src": "url to image", "alt": "alt text" }
+            Don't feel required to have an image in each lesson, but where it would make sense to have one.
+                
+      - "quiz": object (optional)
+          - "id": string - A unique quiz identifier
+          - "questions": array of question objects
+              Each question object:
+                - "id": string - unique question ID
+                - "prompt": string - The question prompt
+                - "options": array of option strings
+                - "correctIndex": number - zero-based index of correct option
+      - "interactiveActivities": array of interactive activity objects (optional)
+          Each activity object:
+            - "id": string - Unique activity ID
+            - "type": string - Activity type ("matching", "drag-and-drop")
+            - "instructions": string - Instructions for the activity
+            - "pairs": array of pair objects. Pair objects contain value and a pair properties for the purpose of the different game types. For matching, one value will match with one pair. For drag and drop, the value might be the label, and the pair might be the order it is supposed to be in, for flashcards, value may be the front, and pair might be the back of the flashcard.
+
+    Make sure to include at least 2 quizes or interactive activities in the course. The course should have at least 4 modules with 3 lessons each.
+- "theme": object
+    - Include keys like "primaryColor", "secondaryColor", "fontFamily" etc. depending on the user input
+>>>>>>> d4d95ca980035bcfc3c9db4e5f103e12b39a7dfd
 
 
     {
@@ -258,7 +297,7 @@ The title of the course is: "${title}". Generate the course around this: "${desc
         { role: 'system', content: systemMessage },
         { role: 'user', content: prompt },
       ],
-      max_tokens: 3000,
+      max_tokens: 10000,
     });
 
     const generatedContent = response.choices[0]?.message?.content || '';

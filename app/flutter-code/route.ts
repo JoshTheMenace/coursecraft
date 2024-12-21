@@ -55,52 +55,117 @@ class CourseHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: course.theme.secondaryColor,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(course.title),
+        title: Text(course.title, style: const TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView(
-          children: [
-            Text(
-              course.description,
-              style: const TextStyle(fontSize: 18, color: Colors.black87),
-            ),
-            const SizedBox(height: 20),
-            ...course.modules.map((mod) {
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(context,
-                      PageRouteBuilder(
-                        transitionDuration: const Duration(milliseconds: 500),
-                        pageBuilder: (context, animation, secondaryAnimation) {
-                          return FadeTransition(
-                            opacity: animation,
-                            child: ModuleDetailPage(module: mod),
-                          );
-                        },
-                      )
-                  );
-                },
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFE3FDFD), Color(0xFFFEFCF3)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            children: [
+              // Course Intro Card
+              Material(
+                elevation: 5,
+                borderRadius: BorderRadius.circular(16),
+                color: Colors.white,
                 child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 10),
-                  child: Material( // Add a Material ancestor here
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
-                    elevation: 3,
-                    child: ListTile(
-                      title: Text(mod.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text(mod.description),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      contentPadding: const EdgeInsets.all(16),
-                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        course.title,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.primaryColorDark,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        course.description,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: 16,
+                          color: Colors.grey[800],
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              );
-            }).toList()
-          ],
+              ),
+              const SizedBox(height: 32),
+              Text(
+                "Modules",
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.primaryColorDark,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              ...course.modules.map((mod) {
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(context,
+                        PageRouteBuilder(
+                          transitionDuration: const Duration(milliseconds: 500),
+                          pageBuilder: (context, animation, secondaryAnimation) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: ModuleDetailPage(module: mod),
+                            );
+                          },
+                        )
+                    );
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 10),
+                    child: Material(
+                      elevation: 3,
+                      borderRadius: BorderRadius.circular(16),
+                      color: Colors.white,
+                      child: ListTile(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        leading: CircleAvatar(
+                          backgroundColor: theme.primaryColorLight,
+                          child: Icon(Icons.book, color: theme.primaryColorDark),
+                        ),
+                        title: Text(
+                          mod.title,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        subtitle: Text(
+                          mod.description,
+                          style: TextStyle(color: Colors.grey[700]),
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios, size: 18),
+                        contentPadding: const EdgeInsets.all(16),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList()
+            ],
+          ),
         ),
       ),
     );
@@ -259,38 +324,103 @@ class LessonDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(lesson.title),
+        title: Text(lesson.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: lesson.content.length,
-        itemBuilder: (context, index) {
-          final c = lesson.content[index];
-          if (c.type == "text") {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Text(
-                c.data ?? "",
-                style: const TextStyle(fontSize: 16, height: 1.5),
-              ),
-            );
-          } else if (c.type == "image") {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12.0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  c.src ?? "",
-                  errorBuilder: (context, error, stack) => const Text("Image failed to load"),
-                ),
-              ),
-            );
-          } else {
-            return const SizedBox.shrink();
-          }
-        },
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFf9f9f9), Color(0xFFeaeaea)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SafeArea(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: lesson.content.length,
+            itemBuilder: (context, index) {
+              final c = lesson.content[index];
+              if (c.type == "text") {
+                return Container(
+                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    c.data ?? "",
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontSize: 16,
+                      height: 1.5,
+                      color: Colors.grey[800],
+                    ),
+                  ),
+                );
+              } else if (c.type == "image") {
+                return Container(
+                  margin: const EdgeInsets.symmetric(vertical: 12.0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      c.src ?? "",
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) {
+                          return child;
+                        }
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
+                                  : null,
+                            ),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stack) => Container(
+                        padding: const EdgeInsets.all(16),
+                        color: Colors.white,
+                        child: const Text(
+                          "Image failed to load",
+                          style: TextStyle(color: Colors.redAccent),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              } else {
+                return const SizedBox.shrink();
+              }
+            },
+          ),
+        ),
       ),
     );
   }
@@ -310,66 +440,146 @@ class ModuleDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(module.title),
+        title: Text(module.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Hero(
-            tag: module.id,
-            child: Material(
-              color: Colors.transparent,
-              child: Text(module.description, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-            ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFF0F9FF), Color(0xFFE0F7FA)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          const SizedBox(height: 24),
-          const Text("Lessons", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          ...module.lessons.map((lesson) {
-            return Card(
-              elevation: 3,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: ListTile(
-                onTap: () {
-                  Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => LessonDetailPage(lesson: lesson),
-                  ));
-                },
-                title: Text(lesson.title),
-                trailing: const Icon(Icons.arrow_forward_ios),
+        ),
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Hero(
+                tag: module.id,
+                child: Material(
+                  color: Colors.transparent,
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      module.description,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[800],
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            );
-          }).toList(),
-          const SizedBox(height: 24),
-          if (module.quiz != null) ...[
-            const Text("Quiz", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(
-                  builder: (context) => QuizPage(quiz: module.quiz!),
-                ));
-              },
-              child: const Text("Take Quiz"),
-            ),
-            const SizedBox(height: 24),
-          ],
-          if (module.interactiveActivities.isNotEmpty) ...[
-            const Text("Interactive Activities", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            for (var activity in module.interactiveActivities)
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => InteractiveActivityPage(activity: activity),
-                  ));
-                },
-                child: const Text("Start Activity"),
-              )
-          ],
-        ],
+              const SizedBox(height: 32),
+              Text(
+                "Lessons",
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.primaryColorDark,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...module.lessons.map((lesson) {
+                return Container(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  child: Material(
+                    elevation: 3,
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.white,
+                    child: ListTile(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(
+                          builder: (context) => LessonDetailPage(lesson: lesson),
+                        ));
+                      },
+                      title: Text(
+                        lesson.title,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 18),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                  ),
+                );
+              }).toList(),
+              const SizedBox(height: 24),
+
+              if (module.quiz != null) ...[
+                Text(
+                  "Quiz",
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.primaryColorDark,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (context) => QuizPage(quiz: module.quiz!),
+                    ));
+                  },
+                  icon: const Icon(Icons.quiz, size: 20),
+                  label: const Text("Take Quiz", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                ),
+                const SizedBox(height: 24),
+              ],
+
+              if (module.interactiveActivities.isNotEmpty) ...[
+                Text(
+                  "Interactive Activities",
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.primaryColorDark,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ...module.interactiveActivities.map((activity) => Container(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20), backgroundColor: Colors.deepPurpleAccent,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(
+                        builder: (context) => InteractiveActivityPage(activity: activity),
+                      ));
+                    },
+                    icon: const Icon(Icons.extension, size: 20),
+                    label: const Text("Start Activity", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  ),
+                ))
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -470,7 +680,12 @@ Future<Course> parseCourse(String jsonStr) async {
     final buffer = StringBuffer();
     if (hex.length == 6 || hex.length == 7) buffer.write('ff');
     buffer.write(hex.replaceFirst('#', ''));
-    return Color(int.parse(buffer.toString(), radix: 16));
+    try {
+      return Color(int.parse(buffer.toString(), radix: 16));
+    } catch (e) {
+      print('Error parsing color: $hex');
+      return Colors.black;
+    }
   }
 
   final themeData = data["theme"];
