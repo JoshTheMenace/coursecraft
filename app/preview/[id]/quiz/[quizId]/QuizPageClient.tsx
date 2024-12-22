@@ -1,4 +1,3 @@
-// app/preview/[id]/quiz/[quizId]/QuizPageClient.tsx
 'use client'
 
 import { useCourse } from '../../CourseContextProvider';
@@ -7,14 +6,10 @@ import Link from 'next/link'
 import React, { useState } from 'react'
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
 
-/**
- * If you want more explicit typing, you can import or define
- * your interfaces from the updated CourseContextProvider here.
- */
 interface Question {
   id: string;
-  prompt?: string; // JSON might store question text under `prompt`
-  question?: string; // or possibly under `question`
+  prompt?: string;
+  question?: string;
   options: string[];
   correctIndex: number;
   explanation?: string;
@@ -31,34 +26,31 @@ interface Quiz {
 export default function QuizPageClient({
   params,
 }: {
-  params: {id:string, quizId:string}
+  params: { id: string; quizId: string }
 }) {
+  // 1) Call all hooks right away, before any 'return'
   const courseData = useCourse();
-  if (!courseData) return <div>No course data.</div>;
+  const [showExplanations, setShowExplanations] = useState(false);
+
+  // 2) Then do your checks/returns
+  if (!courseData) {
+    return <div>No course data.</div>;
+  }
 
   const { id, quizId } = params;
-  // Our new ID scheme uses underscore, e.g., "module1_quiz1"
-  // so let's split by '_' to separate the module ID and quiz ID
   const [moduleId, quizIdPart] = quizId.split('_');
 
-  const foundModule = courseData.modules.find(m => m.id === moduleId);
+  const foundModule = courseData.modules.find((m) => m.id === moduleId);
   if (!foundModule || !foundModule.quiz || foundModule.quiz.id !== quizIdPart) {
     return <div>Quiz not found</div>;
   }
 
   const quiz: Quiz = foundModule.quiz;
 
-  // Optionally track "showExplanations"
-  const [showExplanations, setShowExplanations] = useState(false);
+  // 3) The rest of your component logic
+  const patternDataUrl =
+    "data:image/svg+xml;utf8,<svg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><rect width='40' height='40' fill='%23ffffff'/><path d='M0 39.5 H40 M39.5 0 V40' stroke='%23ccc' stroke-width='0.25'/></svg>";
 
-  // Optional: If you'd like to capture user answers, define a local state:
-  // const [userAnswers, setUserAnswers] = useState<{ [questionId: string]: number | null }>({});
-  // ...and update them as the user selects radio buttons.
-
-  const patternDataUrl = `data:image/svg+xml;utf8,<svg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><rect width='40' height='40' fill='%23ffffff'/><path d='M0 39.5 H40 M39.5 0 V40' stroke='%23ccc' stroke-width='0.25'/></svg>`;
-
-  // If there's an interactive activity after the quiz, we link to it;
-  // otherwise, we link back to the course home.
   const nextHref =
     foundModule.interactiveActivities && foundModule.interactiveActivities.length > 0
       ? `/preview/${id}/activity/${moduleId}_${foundModule.interactiveActivities[0].id}`
@@ -108,7 +100,7 @@ export default function QuizPageClient({
 
         {/* Render each question */}
         {quiz.questions.map((q: Question, qIdx: number) => {
-          const prompt = q.prompt || q.question; // handle whichever field your JSON uses
+          const prompt = q.prompt || q.question;
           return (
             <motion.div
               key={q.id}
@@ -128,7 +120,6 @@ export default function QuizPageClient({
                     type="radio"
                     name={q.id}
                     className="form-radio h-4 w-4 text-indigo-600"
-                    // onChange={() => setUserAnswers(old => ({...old, [q.id]: i}))}
                   />
                   <span className="text-gray-700">{opt}</span>
                 </div>
@@ -143,8 +134,7 @@ export default function QuizPageClient({
           );
         })}
 
-        {/* Buttons: "Check answers" or "Next" */}
-        {/* You can expand this to validate userAnswers, etc. */}
+        {/* Buttons */}
         <div className="mt-6 flex items-center justify-end gap-2">
           {/* Example button to show/hide explanations (optional) */}
           {/* <button
