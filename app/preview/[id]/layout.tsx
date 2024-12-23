@@ -1,6 +1,7 @@
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../../firebase';
 import CourseContextProvider from './CourseContextProvider'; // Import the client component for context
+import Module from './CourseContextProvider';
 
 interface CourseData {
   id: string;

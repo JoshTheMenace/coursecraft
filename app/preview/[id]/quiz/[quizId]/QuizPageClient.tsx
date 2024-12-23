@@ -30,7 +30,7 @@ export default function QuizPageClient({
 }) {
   // 1) Call all hooks right away, before any 'return'
   const courseData = useCourse();
-  const [showExplanations, setShowExplanations] = useState(false);
+  // const [showExplanations, setShowExplanations] = useState(false);
 
   // 2) Then do your checks/returns
   if (!courseData) {
@@ -125,11 +125,11 @@ export default function QuizPageClient({
                 </div>
               ))}
               {/* Show the explanation if showExplanations is true and question.explanation is set */}
-              {showExplanations && q.explanation && (
+              {/* {showExplanations && q.explanation && (
                 <div className="mt-2 p-2 border-l-4 border-blue-400 bg-blue-50 text-blue-900 text-sm">
                   <strong>Explanation:</strong> {q.explanation}
                 </div>
-              )}
+              )} */}
             </motion.div>
           );
         })}
